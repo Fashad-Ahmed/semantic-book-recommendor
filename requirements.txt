@@ -17,6 +17,9 @@ torch==2.11.0
 transformers==5.5.3
 tqdm==4.67.3
 
+# Dashboard / UI
+gradio
+
 # Vector search / RAG (vector-search.ipynb)
 langchain==1.2.15
 langchain-community==0.4.1
