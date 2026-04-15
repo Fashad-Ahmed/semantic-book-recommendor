@@ -1,51 +1,83 @@
-# Semantic Book NLP
+# Semantic Book Recommendor
 
-Exploratory and modeling notebooks for a **~7k book metadata** corpus: cleaning and simplifying categories, **Hugging Face** text classification, **emotion** scoring from descriptions, and **semantic search** over book text with **LangChain** and **Chroma**.
+End-to-end NLP project on the **7k books metadata** dataset: exploration, category simplification, emotion scoring, vector search, and a **Gradio** recommendation dashboard.
 
-## What’s in this repo
+## Project Overview
 
-| Notebook | Purpose |
-|----------|---------|
-| [`data-exploration.ipynb`](data-exploration.ipynb) | Load the Kaggle dataset with `kagglehub`, profile fields, and visualize distributions with pandas, seaborn, and matplotlib. |
-| [`text-classification.ipynb`](text-classification.ipynb) | Map messy `categories` into a smaller set of **simple categories** using a transformers **zero-shot** classifier. |
-| [`sentiment-analysis.ipynb`](sentiment-analysis.ipynb) | Run an **emotion** classification pipeline on book text (DistilRoBERTa-based model). |
-| [`vector-search.ipynb`](vector-search.ipynb) | Chunk `tagged_description.txt`, embed with **sentence-transformers** (`all-MiniLM-L6-v2`), store vectors in **Chroma**, and query semantically. |
+This repo walks through a practical recommendation workflow:
 
-Supporting CSV and text files (`books_cleaned.csv`, `books_with_categories.csv`, `tagged_description.txt`) are produced or consumed along that pipeline.
+1. Explore and clean the dataset.
+2. Normalize noisy categories into simpler labels.
+3. Infer emotions from book descriptions.
+4. Build semantic retrieval with embeddings + Chroma.
+5. Serve recommendations in a Gradio UI.
+
+## Repo Contents
+
+| File | Purpose |
+|------|---------|
+| [`data-exploration.ipynb`](data-exploration.ipynb) | Data loading, profiling, and visualization. |
+| [`text-classification.ipynb`](text-classification.ipynb) | Category simplification with transformer-based classification. |
+| [`sentiment-analysis.ipynb`](sentiment-analysis.ipynb) | Emotion scoring for each book description. |
+| [`vector-search.ipynb`](vector-search.ipynb) | Build semantic search with embeddings and Chroma. |
+| [`gradio-dashboard.py`](gradio-dashboard.py) | Interactive semantic recommendation interface. |
+| [`requirements.txt`](requirements.txt) | Python dependencies. |
 
 ## Dataset
 
-Raw tables come from the Kaggle dataset **[7k books with metadata](https://www.kaggle.com/datasets/dylanjcastillo/7k-books-with-metadata)** (`dylanjcastillo/7k-books-with-metadata`). The exploration notebook downloads it via [`kagglehub`](https://github.com/Kaggle/kagglehub).
+The raw source is Kaggle: [7k books with metadata](https://www.kaggle.com/datasets/dylanjcastillo/7k-books-with-metadata) (`dylanjcastillo/7k-books-with-metadata`).
 
-## Requirements
+Download/auth is handled in notebook workflow via `kagglehub`. See [Kaggle API docs](https://www.kaggle.com/docs/api) if authentication is needed.
 
-- **Python 3.11+** (3.13 is used in development; adjust pins if needed.)
-- Enough disk and RAM for **PyTorch**, **transformers**, and embedding models (first runs download weights from the Hugging Face Hub).
-
-## Setup
+## Quickstart
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python -m ipykernel install --user --name=semantic-book-nlp --display-name="Semantic Book NLP"
 ```
 
-### Hugging Face token (optional but recommended)
-
-Some Hub usage is smoother with a token. Copy the example env file and add your token:
+Optional: configure environment variables.
 
 ```bash
 cp .example.env .env
-# Edit .env: HUGGINGFACEHUB_API_TOKEN=your_token_here
+# Edit .env and set: HUGGINGFACEHUB_API_TOKEN=your_token_here
 ```
 
-In notebooks that call `load_dotenv()`, secrets are read from `.env` (that file is gitignored).
+## Recommended Run Order
 
-### Kaggle download
+Run notebooks in this order for reproducible outputs:
 
-If you use `kagglehub` to pull the dataset, follow [Kaggle’s authentication docs](https://www.kaggle.com/docs/api) so the CLI or `kagglehub` can access your account.
+1. [`data-exploration.ipynb`](data-exploration.ipynb)
+2. [`text-classification.ipynb`](text-classification.ipynb)
+3. [`sentiment-analysis.ipynb`](sentiment-analysis.ipynb)
+4. [`vector-search.ipynb`](vector-search.ipynb)
 
-## Tech stack
+These steps create and/or rely on intermediate artifacts such as:
+- `books_with_emotions.csv`
+- `tagged_description.txt`
 
-pandas · numpy · matplotlib · seaborn · Jupyter · **PyTorch** · **transformers** · **tqdm** · **LangChain** (community, text splitters, Hugging Face integrations) · **Chroma** · **sentence-transformers** · **python-dotenv** · **kagglehub**
+## Run the Dashboard
+
+After generating the required files, launch:
+
+```bash
+python gradio-dashboard.py
+```
+
+Then open the local URL printed in terminal (usually `http://127.0.0.1:7860`).
+
+## Tech Stack
+
+- Data: `pandas`, `numpy`, `matplotlib`, `seaborn`
+- NLP/ML: `torch`, `transformers`, `tqdm`
+- Retrieval: `langchain`, `langchain-community`, `langchain-text-splitters`, `langchain-huggingface`, `langchain-chroma`, `chromadb`, `sentence-transformers`
+- App/UI: `gradio`
+- Utilities: `python-dotenv`, `kagglehub`, `jupyter`, `ipykernel`
+
+## Troubleshooting
+
+- **`chunk_size must be > 0`**: ensure your splitter config uses a positive value.
+- **Missing model/token errors**: add `HUGGINGFACEHUB_API_TOKEN` in `.env`.
+- **Slow first run**: expected; model weights and embeddings are downloaded/cached.
